@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    class EditInPlaceField {
+      constructor(id, parent, value) {
+        this.id = id
+        this.value = value || 'default value'
+        this.parentElement = parent
+        this.createElement(this.id)
+        this.attachEvents()
+      }
+      createElement() {
+        this.containerElement = document.createElement('div')
+        this.parentElement.appendChild(this.containerElement)
+
+        // 文字span
+        this.staticElement = document.createElement('span')
+        this.containerElement.appendChild(this.staticElement)
+        this.staticElement.innerHTML = this.value
+
+        // 编辑框
+        this.fieldElement = document.createElement('input')
+        this.fieldElement.value = this.value
+        this.containerElement.appendChild(this.fieldElement)
+
+        // 保存按钮
+        this.saveButton = document.createElement('input')
+        this.saveButton.type = 'button'
+        this.saveButton.value = '保存'
+        this.containerElement.appendChild(this.saveButton)
+
+        // 取消按钮
+        this.cancelButton = document.createElement('input')
+        this.cancelButton.type = 'button'
+        this.cancelButton.value = '取消'
+        this.containerElement.appendChild(this.cancelButton)
+
+        this.convertToText()
+      }
+      convertToText() {
+        this.fieldElement.style.display = 'none'
+        this.saveButton.style.display = 'none'
+        this.cancelButton.style.display = 'none'
+        this.staticElement.style.display = 'inline'
+      }
+      attachEvents() {
+        let that = this
+        this.staticElement.addEventListener('click', function() {
+          that.convertToEditable()
+        }, false)
+        this.saveButton.addEventListener('click', function() {
+          let fieldVal = that.fieldElement.value.trim()
+          if(fieldVal == '') {
+            that.fieldElement.focus()
+            return
+          }
+          that.staticElement.innerHTML = fieldVal
+          that.saveEdit(fieldVal)
+          that.convertToText()
+        })
+        this.cancelButton.addEventListener('click', function() {
+          that.convertToText()
+        }, false)
+      }
+      saveEdit(val) {
+        localStorage.setItem(this.id, val)
+      }
+      convertToEditable() {
+        this.fieldElement.style.display = 'inline'
+        this.saveButton.style.display = 'inline'
+        this.cancelButton.style.display = 'inline'
+        this.staticElement.style.display = 'none'
+      }
+    }
+    // 面向对象方式，构建EditInPlace 就地编辑Ajax体验
+    // function EditInPlaceField(id, parent, value) {
+    //   this.id = id
+    //   this.value = value || 'default value'
+    //   this.parentElement = parent
+    //   this.createElement(this.id)
+    //   this.attachEvents()
+    // }
+    // // dom
+    // // jquery 零散的逻辑和事件，随意及简便，但没有复用性
+    // // 抽象
+    // EditInPlaceField.prototype.createElement = function() {
+    //   this.containerElement = document.createElement('div')
+    //   this.parentElement.appendChild(this.containerElement)
+    //
+    //   // 文字span
+    //   this.staticElement = document.createElement('span')
+    //   this.containerElement.appendChild(this.staticElement)
+    //   this.staticElement.innerHTML = this.value
+    //
+    //   // 编辑框
+    //   this.fieldElement = document.createElement('input')
+    //   this.fieldElement.value = this.value
+    //   this.containerElement.appendChild(this.fieldElement)
+    //
+    //   // 保存按钮
+    //   this.saveButton = document.createElement('input')
+    //   this.saveButton.type = 'button'
+    //   this.saveButton.value = '保存'
+    //   this.containerElement.appendChild(this.saveButton)
+    //
+    //   // 取消按钮
+    //   this.cancelButton = document.createElement('input')
+    //   this.cancelButton.type = 'button'
+    //   this.cancelButton.value = '取消'
+    //   this.containerElement.appendChild(this.cancelButton)
+    //
+    //   this.convertToText()
+    // }
+
+    // EditInPlaceField.prototype.convertToText = function() {
+    //   this.fieldElement.style.display = 'none'
+    //   this.saveButton.style.display = 'none'
+    //   this.cancelButton.style.display = 'none'
+    //   this.staticElement.style.display = 'inline'
+    // }
+    //
+    // EditInPlaceField.prototype.attachEvents =function() {
+    //   let that = this
+    //   this.staticElement.addEventListener('click', function() {
+    //     that.convertToEditable()
+    //   }, false)
+    //   this.saveButton.addEventListener('click', function() {
+    //     let fieldVal = that.fieldElement.value.trim()
+    //     if(fieldVal == '') {
+    //       that.fieldElement.focus()
+    //       return
+    //     }
+    //     that.staticElement.innerHTML = fieldVal
+    //     that.saveEdit(fieldVal)
+    //     that.convertToText()
+    //   })
+    //   this.cancelButton.addEventListener('click', function() {
+    //     that.convertToText()
+    //   }, false)
+    // }
+    //
+    // EditInPlaceField.prototype.saveEdit = function(val) {
+    //   localStorage.setItem(this.id, val)
+    // }
+    //
+    // EditInPlaceField.prototype.convertToEditable = function() {
+    //   this.fieldElement.style.display = 'inline'
+    //   this.saveButton.style.display = 'inline'
+    //   this.cancelButton.style.display = 'inline'
+    //   this.staticElement.style.display = 'none'
+    // }
+
+    // let username = localStorage.getItem('username') || '未命名'
+    // let address = localStorage.getItem('user_address') || '地址为空'
+    // let oField = new EditInPlaceField('username', document.body, useranme)
+    // let oAddressField = new EditInPlaceField('user_address', document.body, address)
+
+    // 地址 通信 数据格式 Ajax XML json 体积小，描述性强
+    // a.php b.php  echo json
+    // 请求->a.json(代码执行数据库，业务) ->吐出json->发送
+    // ajax xhr 发生客户端 网页被加载后，服务器端断开了链接，
+    // html, css, js 下载到本地
+    // xhr send 请求，向服务器端发出请求
+    // 服务器 ip 3000 80 /a.json 请求
+    // 原路返回
+    function getAPromise() {
+      return new Promise((resolve, reject) => {
+        // 万能对象，js 主动的去发出请求
+        let xhr = new XMLHttpRequest()
+        // 打开连接通道
+        xhr.open('GET', url[0], true)
+        xhr.onload = function() {
+          resolve(xhr.responseText)
+        }
+        xhr.onerror = function(err) {
+          throw new Error(err)
+        }
+        xhr.send()
+      })
+    }
+
+    let url = ['a.json', 'b.json']
+    // getAPromise()
+    //   .then(data => {
+    //     let username = JSON.parse(data).username
+    //     let oField = new EditInPlaceField('username', document.body, username)
+    //   })
+    fetch(url[0])
+      .then(data => {
+        return data.json()
+      })
+      .then(data => {
+        let username = data.username
+        let oField = new EditInPlaceField('username', document.body, username)
+      })
+  </script>
+</body>
+</html>
